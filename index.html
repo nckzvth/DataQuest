@@ -265,8 +265,39 @@
     @keyframes cue { 0% { transform:translateX(-100%); } 48%,100% { transform:translateX(100%); } }
     section { padding: 96px 0; border-top: 1px solid var(--line); position: relative; }
     .section-head { display:grid; grid-template-columns: .85fr 1.15fr; gap: 50px; align-items:end; margin-bottom: 54px; }
+    .section-head.has-section-toggle { align-items:start; }
+    .section-copy { display:grid; gap: 18px; align-content:end; justify-items:start; }
     h2 { font-size: clamp(38px, 5.2vw, 78px); line-height:.95; letter-spacing: -.06em; margin: 0; text-wrap: balance; }
     .section-head p, .wide-p { color: var(--muted); font-size: 19px; line-height:1.55; margin:0; max-width: 760px; }
+    .section-toggle, .week-detail-toggle {
+      display:inline-flex; align-items:center; gap:9px; width:fit-content; max-width:100%;
+      min-height:38px; padding: 0 12px; border:1px solid var(--line);
+      border-radius:999px; background:rgba(255,255,255,.038); color:var(--muted);
+      font:800 12px/1 var(--font); letter-spacing:.01em; cursor:pointer;
+      transition: transform .24s cubic-bezier(.16,1,.3,1), color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .section-toggle:hover, .section-toggle:focus-visible,
+    .week-detail-toggle:hover, .week-detail-toggle:focus-visible {
+      color:var(--text); background:rgba(255,255,255,.075); border-color:var(--line-strong);
+      transform:translateY(-1px); outline:none; box-shadow:0 12px 34px rgba(0,0,0,.12);
+    }
+    .section-toggle svg, .week-detail-toggle svg {
+      width:15px; height:15px; flex:0 0 auto; stroke-width:2.4;
+      transition: transform .28s cubic-bezier(.16,1,.3,1);
+    }
+    .section-toggle[aria-expanded="true"] svg,
+    .week-detail-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+    .section-body-shell {
+      display:grid; grid-template-rows:1fr; opacity:1; transform:translateY(0);
+      transition: grid-template-rows .42s cubic-bezier(.16,1,.3,1), opacity .24s ease, transform .42s cubic-bezier(.16,1,.3,1);
+    }
+    .section-body { min-height:0; }
+    section.is-section-animating .section-body-shell,
+    section.section-collapsed .section-body-shell { overflow:hidden; }
+    section.section-collapsed { padding-bottom: 48px; }
+    section.section-collapsed .section-head { margin-bottom:0; }
+    section.section-collapsed .section-body-shell { grid-template-rows:0fr; opacity:0; transform:translateY(-8px); pointer-events:none; }
+    section.section-collapsed .section-body { visibility:hidden; }
     .pipeline { display:grid; grid-template-columns: repeat(7, 1fr); gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
     .phase { padding: 26px 16px; min-height: 190px; border-right: 1px solid var(--line); position:relative; }
     .phase:last-child { border-right:0; }
@@ -341,6 +372,8 @@
     .spec-line b { display:block; font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:var(--subtle); margin-bottom:8px; }
     .done-control { display:flex; align-items:center; gap: 10px; margin-top: 18px; color: var(--muted); font-weight:700; }
     .done-control input { width: 18px; height:18px; accent-color: #7b6cff; }
+    .week-detail-toggle { display:none; }
+    .week-details { display:block; }
     .week.completed h3 { color: rgba(247,248,251,.58); }
     body.light .week.completed h3 { color: rgba(16,19,26,.5); }
 
@@ -589,6 +622,12 @@
     body.compact .week-num strong { font-size: 34px; }
     body.compact .week h3 { font-size: clamp(23px, 2.3vw, 34px); }
     body.compact .week p, body.compact .week-meta, body.compact .week-project { display:none; }
+    body.compact .week-detail-toggle { display:inline-flex; }
+    body.compact .week-details { display:none; }
+    body.compact .week.week-expanded .week-details { display:block; animation: fadeUp .28s ease both; }
+    body.compact .week.week-expanded .week-details p { display:block; }
+    body.compact .week.week-expanded .week-meta { display:grid; }
+    body.compact .week.week-expanded .week-project { display:block; }
     body.compact .done-control { margin-top: 12px; }
     body.compact .timeline { border-top-color: var(--line-strong); }
 
@@ -609,6 +648,7 @@
       .nav-next, #densityBtn { display:none; }
       .mobile-jump { display:block; }
       .hero-grid, .section-head, .week-meta, .spec-grid, .gates, .artifact-grid { grid-template-columns: 1fr; }
+      .section-copy { gap: 14px; }
       .hero { padding-top: 124px; min-height: auto; }
       .hero-system { width:min(100%, 620px); margin: 10px auto 34px; }
       .map-stats { bottom: -18px; left:4%; right:4%; }
@@ -822,9 +862,13 @@
     }
 
     @media print {
-      .nav, .nav-tray, .controls, .hero-actions, .toast, .mobile-jump, .section-nav, .command-dialog { display:none!important; }
+      .nav, .nav-tray, .controls, .hero-actions, .toast, .mobile-jump, .section-nav, .command-dialog, .section-toggle, .week-detail-toggle { display:none!important; }
       body { background:#fff!important; color:#111!important; }
       section { break-inside:auto; padding: 36px 0; }
+      section.section-collapsed .section-body-shell { display:block!important; grid-template-rows:1fr!important; opacity:1!important; transform:none!important; }
+      section.section-collapsed .section-body { visibility:visible!important; }
+      body.compact .week-details, body.compact .week p, body.compact .week-meta, body.compact .week-project { display:block!important; }
+      body.compact .week-meta { display:grid!important; }
       .week { break-inside: avoid; grid-template-columns: 80px 1fr; }
       .hero-system { display:none; }
       a { color:#0645ad!important; text-decoration: underline!important; }
@@ -1088,7 +1132,19 @@
     const STORE = 'dataAiCareerQuestProgress.v1';
     const THEME = 'dataAiCareerQuestTheme.v1';
     const DENSITY = 'dataAiCareerQuestDensity.v1';
+    const SECTION_COLLAPSE = 'dataAiCareerQuestSectionCollapse.v1';
+    const WEEK_EXPANSION = 'dataAiCareerQuestWeekExpansion.v1';
+    function readStorageObject(key) {
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || '{}');
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+      } catch {
+        return {};
+      }
+    }
     const progress = JSON.parse(localStorage.getItem(STORE) || '{"weeks":{}}');
+    const collapsedSections = readStorageObject(SECTION_COLLAPSE);
+    let expandedWeeks = readStorageObject(WEEK_EXPANSION);
 
     function save() { localStorage.setItem(STORE, JSON.stringify(progress)); updateCompletion(); }
     function toast(msg='Saved') { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1200); }
@@ -1311,12 +1367,155 @@
       document.body.classList.toggle('compact', compact);
       const btn = $('#densityBtn');
       if (btn) btn.textContent = compact ? 'Expanded' : 'Compact';
+      applyWeekExpansionState();
     }
     function toggleDensity() {
       const compact = !document.body.classList.contains('compact');
       localStorage.setItem(DENSITY, compact ? 'compact' : 'expanded');
       applyDensity();
       toast(compact ? 'Compact roadmap' : 'Expanded roadmap');
+    }
+
+    const COLLAPSIBLE_SECTIONS = ['path', 'weeks', 'projects', 'resources', 'specialize', 'accelerated', 'career'];
+    const disclosureIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    function persistCollapsedSections() {
+      localStorage.setItem(SECTION_COLLAPSE, JSON.stringify(collapsedSections));
+    }
+    function persistExpandedWeeks() {
+      localStorage.setItem(WEEK_EXPANSION, JSON.stringify(expandedWeeks));
+    }
+    function isSectionCollapsed(id) {
+      return !!document.getElementById(id)?.classList.contains('section-collapsed');
+    }
+    function applySectionCollapseState(section, collapsed, animate=false) {
+      const id = section?.dataset.collapsibleSection;
+      if (!section || !id) return;
+      const shell = section.querySelector(`#${id}-body`);
+      const body = shell?.querySelector('.section-body');
+      const btn = section.querySelector(`[data-section-toggle="${id}"]`);
+      if (shell && !animate) {
+        shell.style.transition = 'none';
+        shell.getBoundingClientRect();
+      }
+      section.classList.toggle('section-collapsed', collapsed);
+      if (shell && !animate) {
+        shell.getBoundingClientRect();
+        requestAnimationFrame(() => requestAnimationFrame(() => { shell.style.transition = ''; }));
+      }
+      if (animate) {
+        section.classList.add('is-section-animating');
+        clearTimeout(section._sectionAnimationTimer);
+        section._sectionAnimationTimer = setTimeout(() => section.classList.remove('is-section-animating'), 460);
+      }
+      if (shell) shell.setAttribute('aria-hidden', String(collapsed));
+      if (body) body.toggleAttribute('inert', collapsed);
+      if (btn) {
+        btn.setAttribute('aria-expanded', String(!collapsed));
+        btn.setAttribute('title', collapsed ? 'Expand section' : 'Collapse section');
+        btn.setAttribute('aria-label', collapsed ? 'Expand section' : 'Collapse section');
+        btn.querySelector('[data-section-toggle-label]').textContent = collapsed ? 'Expand' : 'Collapse';
+      }
+    }
+    function setSectionCollapsed(id, collapsed, opts={}) {
+      const section = document.getElementById(id);
+      if (!section) return;
+      collapsedSections[id] = !!collapsed;
+      if (!collapsed) delete collapsedSections[id];
+      if (opts.persist !== false) persistCollapsedSections();
+      applySectionCollapseState(section, !!collapsed, opts.animate !== false);
+      if (opts.scroll !== false && collapsed) {
+        const rect = section.getBoundingClientRect();
+        if (rect.top < 82 && rect.bottom > window.innerHeight * .42) {
+          smoothScrollToY(rect.top + window.scrollY - 82);
+        }
+      }
+      if (opts.announce) toast(collapsed ? 'Section collapsed' : 'Section expanded');
+      requestAnimationFrame(updateSectionNav);
+    }
+    function setupSectionToggles() {
+      COLLAPSIBLE_SECTIONS.forEach(id => {
+        const section = document.getElementById(id);
+        const wrap = section?.querySelector(':scope > .wrap');
+        const head = wrap?.querySelector(':scope > .section-head');
+        if (!section || !wrap || !head || section.dataset.collapsibleReady) return;
+        section.dataset.collapsibleSection = id;
+        head.classList.add('has-section-toggle');
+
+        let copy = head.children[1];
+        if (copy && !copy.classList.contains('section-copy')) {
+          const copyWrap = document.createElement('div');
+          copyWrap.className = 'section-copy';
+          copy.replaceWith(copyWrap);
+          copyWrap.appendChild(copy);
+          copy = copyWrap;
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'section-toggle';
+        btn.type = 'button';
+        btn.dataset.sectionToggle = id;
+        btn.setAttribute('aria-controls', `${id}-body`);
+        btn.setAttribute('aria-expanded', 'true');
+        btn.innerHTML = `<span data-section-toggle-label>Collapse</span>${disclosureIcon}`;
+        (copy?.classList.contains('section-copy') ? copy : head).appendChild(btn);
+
+        const shell = document.createElement('div');
+        shell.className = 'section-body-shell';
+        shell.id = `${id}-body`;
+        const body = document.createElement('div');
+        body.className = 'section-body';
+        while (head.nextSibling) body.appendChild(head.nextSibling);
+        shell.appendChild(body);
+        wrap.appendChild(shell);
+        section.dataset.collapsibleReady = 'true';
+        applySectionCollapseState(section, !!collapsedSections[id], false);
+      });
+    }
+    function setWeekDetailsExpanded(week, expanded, opts={}) {
+      const article = document.getElementById(`week-${week}`);
+      if (!article) return;
+      if (expanded) expandedWeeks[week] = true;
+      else delete expandedWeeks[week];
+      if (opts.persist !== false) persistExpandedWeeks();
+      const compact = document.body.classList.contains('compact');
+      const details = article.querySelector('[data-week-details]');
+      const btn = article.querySelector('[data-week-details-toggle]');
+      article.classList.toggle('week-expanded', !!expanded);
+      if (details) {
+        const hidden = compact && !expanded;
+        details.setAttribute('aria-hidden', String(hidden));
+        details.toggleAttribute('inert', hidden);
+      }
+      if (btn) {
+        btn.setAttribute('aria-expanded', String(!!expanded));
+        btn.querySelector('[data-week-toggle-label]').textContent = expanded ? 'Hide details' : 'Details';
+      }
+      if (opts.announce) toast(expanded ? `Week ${week} expanded` : `Week ${week} collapsed`);
+    }
+    function applyWeekExpansionState() {
+      $$('#weekList .week').forEach(article => {
+        const week = article.id.replace('week-', '');
+        setWeekDetailsExpanded(week, !!expandedWeeks[week], { persist:false });
+      });
+    }
+    function toggleWeekDetails(week) {
+      setWeekDetailsExpanded(week, !expandedWeeks[week], { announce:true });
+      requestAnimationFrame(updateSectionNav);
+    }
+    function revealCollapsedTarget(target) {
+      if (!target || target === document.body) return false;
+      let changed = false;
+      const parentSection = target.closest('[data-collapsible-section]');
+      if (parentSection && target !== parentSection && isSectionCollapsed(parentSection.dataset.collapsibleSection)) {
+        setSectionCollapsed(parentSection.dataset.collapsibleSection, false, { persist:true, animate:false, scroll:false });
+        changed = true;
+      }
+      const week = target.closest('#weekList .week');
+      if (week && document.body.classList.contains('compact') && !week.classList.contains('week-expanded')) {
+        setWeekDetailsExpanded(week.id.replace('week-', ''), true, { persist:true });
+        changed = true;
+      }
+      return changed;
     }
 
     const PROJECT_FILTERS = [
@@ -1532,18 +1731,20 @@
         <article class="week ${progress.weeks[w.week] ? 'completed' : ''}" id="week-${w.week}" data-phase="${w.phase}" data-search="${[w.week,w.phase,w.focus,w.objectives,w.deliverable,w.project||'', w.resources.map(r=>r.title).join(' ')].join(' ').toLowerCase()}">
           <div class="week-num"><span>Week</span><strong>${String(w.week).padStart(2,'0')}</strong></div>
           <div class="week-main">
-            <div class="week-kicker"><span class="tag">${w.phase}</span><span class="hours">${w.hours} hrs</span></div>
+            <div class="week-kicker"><span class="tag">${w.phase}</span><span class="hours">${w.hours} hrs</span><button class="week-detail-toggle" type="button" data-week-details-toggle="${w.week}" aria-expanded="false" aria-controls="week-${w.week}-details"><span data-week-toggle-label>Details</span>${disclosureIcon}</button></div>
             <h3>${w.focus}</h3>
-            <p>${w.objectives}</p>
-            <div class="week-meta">
-              <div class="strip"><h4>Resources</h4><ul class="resources-list">${resourceLinks(w.resources)}</ul></div>
-              <div class="strip direct-guidance"><h4>What to do in the resources</h4>${resourceGuidanceHTML(w.resources, w)}</div>
-              <div class="strip"><h4>Target output</h4><p>${w.deliverable}</p></div>
-              <div class="strip"><h4>Completion checklist</h4><ul class="plain-list">${w.checklist.map(c=>`<li>${c}</li>`).join('')}</ul></div>
-              <div class="strip artifact-spec"><h4>Artifact spec</h4>${artifactSpecHTML(w, {prefix:'core'})}</div>
-              <div class="strip"><h4>Move on when</h4><p>You can explain the deliverable, commit it to GitHub in the specified location, and point to the files that satisfy the artifact spec.</p></div>
+            <div class="week-details" id="week-${w.week}-details" data-week-details>
+              <p>${w.objectives}</p>
+              <div class="week-meta">
+                <div class="strip"><h4>Resources</h4><ul class="resources-list">${resourceLinks(w.resources)}</ul></div>
+                <div class="strip direct-guidance"><h4>What to do in the resources</h4>${resourceGuidanceHTML(w.resources, w)}</div>
+                <div class="strip"><h4>Target output</h4><p>${w.deliverable}</p></div>
+                <div class="strip"><h4>Completion checklist</h4><ul class="plain-list">${w.checklist.map(c=>`<li>${c}</li>`).join('')}</ul></div>
+                <div class="strip artifact-spec"><h4>Artifact spec</h4>${artifactSpecHTML(w, {prefix:'core'})}</div>
+                <div class="strip"><h4>Move on when</h4><p>You can explain the deliverable, commit it to GitHub in the specified location, and point to the files that satisfy the artifact spec.</p></div>
+              </div>
+              ${renderProjectSpec(w.project)}
             </div>
-            ${renderProjectSpec(w.project)}
             <label class="done-control"><input type="checkbox" data-week-check="${w.week}" ${progress.weeks[w.week] ? 'checked' : ''} /> Mark week ${w.week} complete</label>
           </div>
         </article>`).join('');
@@ -1557,6 +1758,7 @@
       $$('[data-project-toggle]').forEach(t => t.addEventListener('click', () => {
         t.nextElementSibling.classList.toggle('open');
       }));
+      applyWeekExpansionState();
     }
 
     function renderProjectIndex() {
@@ -1703,9 +1905,17 @@
       if (!hash || hash === '#') return false;
       const target = hash === '#top' ? document.body : document.querySelector(hash);
       if (!target) return false;
-      const y = target === document.body ? 0 : target.getBoundingClientRect().top + window.scrollY - 82;
-      if (instant) jumpScrollToY(y);
-      else smoothScrollToY(y);
+      const needsLayout = revealCollapsedTarget(target);
+      const scroll = () => {
+        const y = target === document.body ? 0 : target.getBoundingClientRect().top + window.scrollY - 82;
+        if (instant) jumpScrollToY(y);
+        else smoothScrollToY(y);
+      };
+      if (needsLayout) requestAnimationFrame(() => requestAnimationFrame(() => {
+        setTimeout(scroll, prefersReduced ? 40 : 460);
+        setTimeout(scroll, prefersReduced ? 120 : 1100);
+      }));
+      else scroll();
       return true;
     }
     function syncInitialHash() {
@@ -1757,16 +1967,18 @@
 
       // The nav arrows should move through the actual roadmap, not jump from the
       // Weeks section to Projects. Each visible week becomes its own scroll stop.
-      document.querySelectorAll('#weekList .week:not(.hidden)').forEach(el => {
-        const weekNumber = el.id?.replace('week-', '') || '';
-        const focus = el.querySelector('h3')?.textContent?.trim() || 'Weekly task';
-        sections.push({
-          el,
-          id: el.id,
-          label: `Week ${weekNumber}`,
-          detail: focus
+      if (!isSectionCollapsed('weeks')) {
+        document.querySelectorAll('#weekList .week:not(.hidden)').forEach(el => {
+          const weekNumber = el.id?.replace('week-', '') || '';
+          const focus = el.querySelector('h3')?.textContent?.trim() || 'Weekly task';
+          sections.push({
+            el,
+            id: el.id,
+            label: `Week ${weekNumber}`,
+            detail: focus
+          });
         });
-      });
+      }
 
       ['projects', 'resources'].forEach(id => {
         const el = document.getElementById(id);
@@ -1775,19 +1987,23 @@
 
       const specialize = document.getElementById('specialize');
       if (specialize) sections.push({ el: specialize, id: 'specialize', label: sectionLabels.specialize || 'Specialize' });
-      document.querySelectorAll('#specializationDetails .lane-week').forEach(el => {
-        const num = el.id?.replace('specialization-', '') || '';
-        const focus = el.querySelector('h3')?.textContent?.trim() || 'Specialization week';
-        sections.push({ el, id: el.id, label: `Specialization ${num}`, detail: focus });
-      });
+      if (!isSectionCollapsed('specialize')) {
+        document.querySelectorAll('#specializationDetails .lane-week').forEach(el => {
+          const num = el.id?.replace('specialization-', '') || '';
+          const focus = el.querySelector('h3')?.textContent?.trim() || 'Specialization week';
+          sections.push({ el, id: el.id, label: `Specialization ${num}`, detail: focus });
+        });
+      }
 
       const accelerated = document.getElementById('accelerated');
       if (accelerated) sections.push({ el: accelerated, id: 'accelerated', label: sectionLabels.accelerated || 'Accelerated' });
-      document.querySelectorAll('#acceleratedDetails .lane-week').forEach(el => {
-        const num = el.id?.replace('accelerated-', '') || '';
-        const focus = el.querySelector('h3')?.textContent?.trim() || 'Accelerated week';
-        sections.push({ el, id: el.id, label: `Accelerated ${num}`, detail: focus });
-      });
+      if (!isSectionCollapsed('accelerated')) {
+        document.querySelectorAll('#acceleratedDetails .lane-week').forEach(el => {
+          const num = el.id?.replace('accelerated-', '') || '';
+          const focus = el.querySelector('h3')?.textContent?.trim() || 'Accelerated week';
+          sections.push({ el, id: el.id, label: `Accelerated ${num}`, detail: focus });
+        });
+      }
 
       const career = document.getElementById('career');
       if (career) sections.push({ el: career, id: 'career', label: sectionLabels.career || 'Career' });
@@ -1976,6 +2192,16 @@
     $('#currentWeekBtn').addEventListener('click', nextWeek);
     $('#navNextBtn')?.addEventListener('click', nextWeek);
     $('#densityBtn')?.addEventListener('click', toggleDensity);
+    document.addEventListener('click', e => {
+      const sectionBtn = e.target.closest('[data-section-toggle]');
+      if (sectionBtn) {
+        const id = sectionBtn.dataset.sectionToggle;
+        setSectionCollapsed(id, !isSectionCollapsed(id), { announce:true });
+        return;
+      }
+      const weekBtn = e.target.closest('[data-week-details-toggle]');
+      if (weekBtn) toggleWeekDetails(weekBtn.dataset.weekDetailsToggle);
+    });
     $('#commandBtn')?.addEventListener('click', openCommandPalette);
     $('#commandCloseBtn')?.addEventListener('click', closeCommandPalette);
     $('#commandInput')?.addEventListener('input', () => { commandActive = 0; renderCommandResults(); });
@@ -2073,7 +2299,7 @@
 
     applyTheme();
     applyDensity();
-    renderDots(); renderPhases(); renderWeeks(); renderProjectIndex(); renderResources(); renderTables(); updateCompletion(); initReveal(); updateSectionNav(); syncInitialHash(); onScrollFrame();
+    renderDots(); renderPhases(); renderWeeks(); renderProjectIndex(); renderResources(); renderTables(); setupSectionToggles(); updateCompletion(); initReveal(); updateSectionNav(); syncInitialHash(); onScrollFrame();
   </script>
 </body>
 </html>
