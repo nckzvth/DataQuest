@@ -75,10 +75,41 @@
     .brand { display:flex; align-items:center; gap:10px; font-weight: 700; letter-spacing:-.02em; white-space: nowrap; }
     .mark { width:26px; height:26px; border-radius:9px; background: conic-gradient(from 210deg, var(--blue), var(--violet), var(--orange), var(--blue)); box-shadow: 0 0 26px rgba(103,183,255,.35); }
     .navlinks { display:flex; gap: 4px; align-items:center; flex-wrap: wrap; justify-content: center; }
+    .nav-actions { display:flex; gap: 4px; align-items:center; justify-content:flex-end; min-width:0; }
     .navlinks a, .nav button, .mode-toggle {
       border: 0; background: transparent; color: var(--muted); padding: 8px 10px; border-radius: 999px; font: 600 12px/1 var(--font); cursor: pointer;
     }
-    .navlinks a:hover, .nav button:hover, .mode-toggle:hover { color: var(--text); background: var(--glass); }
+    .navlinks a:hover, .navlinks a.active, .navlinks a.tray-active, .nav button:hover, .mode-toggle:hover { color: var(--text); background: var(--glass); }
+    .nav-next { max-width: 170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .nav-kbd { color: var(--subtle); font-weight:800; letter-spacing:.02em; }
+    .nav-tray {
+      position: fixed; top: 70px; left: 50%; width: min(calc(100% - 36px), var(--max)); z-index: 95;
+      transform: translate3d(-50%, -10px, 0) scale(.985); opacity:0; pointer-events:none;
+      transition: opacity .22s ease, transform .28s cubic-bezier(.16,1,.3,1), filter .22s ease;
+      filter: blur(4px);
+    }
+    .nav-tray.open { opacity:1; pointer-events:auto; transform: translate3d(-50%, 0, 0) scale(1); filter: blur(0); }
+    .nav-tray-inner {
+      display:grid; grid-template-columns: 250px minmax(0,1fr); gap: 20px; padding: 18px;
+      border:1px solid var(--line); border-radius: 24px;
+      background: rgba(4,8,17,.82); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+      box-shadow: 0 28px 90px rgba(0,0,0,.34);
+    }
+    body.light .nav-tray-inner { background: rgba(255,255,255,.88); }
+    .nav-tray-kicker { color: var(--subtle); font-size: 11px; font-weight:900; letter-spacing:.16em; text-transform:uppercase; margin-bottom: 9px; }
+    .nav-tray-title { font-size: 26px; line-height:1; letter-spacing:-.055em; margin:0 0 10px; }
+    .nav-tray-copy { margin:0; color: var(--muted); font-size: 14px; line-height:1.45; }
+    .nav-tray-list {
+      display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+      max-height: min(54vh, 420px); overflow:auto; padding-right: 4px;
+    }
+    .nav-tray-card {
+      display:grid; gap:5px; min-height: 68px; padding: 11px 12px; border:1px solid var(--line);
+      border-radius:8px; background: rgba(255,255,255,.035); transition: transform .22s cubic-bezier(.16,1,.3,1), background .22s ease, border-color .22s ease;
+    }
+    .nav-tray-card:hover, .nav-tray-card:focus-visible { transform: translateY(-1px); background:rgba(255,255,255,.07); border-color:var(--line-strong); outline:none; }
+    .nav-tray-card b { color:var(--text); font-size:13px; line-height:1.15; letter-spacing:-.01em; }
+    .nav-tray-card span { color:var(--muted); font-size:12px; line-height:1.3; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
     .mobile-jump { display:none; width: 100%; margin-top: 80px; padding: 0 16px; }
     select, input[type="search"] {
       color: var(--text); background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 12px 14px; font: 600 14px/1 var(--font); outline: none;
@@ -363,6 +394,18 @@
     details.compact summary { cursor:pointer; color:var(--muted); font-weight:800; margin-bottom:18px; }
     .source-note { color:var(--subtle); font-size:13px; line-height:1.45; margin: -8px 0 24px; max-width: 900px; }
 
+    .quick-filters {
+      display:flex; flex-wrap:wrap; gap:8px; margin: -18px 0 28px; padding: 8px;
+      border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.028); width:fit-content; max-width:100%;
+    }
+    .filter-chip {
+      border:1px solid transparent; border-radius:999px; background:transparent; color:var(--muted);
+      padding:9px 12px; font:800 12px/1 var(--font); cursor:pointer; transition: color .2s ease, background .2s ease, border-color .2s ease;
+    }
+    .filter-chip:hover { color:var(--text); background:rgba(255,255,255,.06); }
+    .filter-chip.active { color:#fff; border-color:rgba(255,255,255,.12); background:linear-gradient(135deg, rgba(103,183,255,.7), rgba(138,108,255,.62)); }
+    .project-hidden, .resource-row.hidden > div { display:none!important; }
+
     .table-wrap { overflow:auto; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
     table { width:100%; border-collapse: collapse; min-width: 760px; }
     th, td { padding: 16px 14px; border-bottom: 1px solid var(--line); text-align:left; vertical-align:top; color: var(--muted); line-height:1.45; }
@@ -520,6 +563,34 @@
     .dialog-head { display:flex; justify-content:space-between; align-items:center; gap:18px; padding: 22px 24px; border-bottom:1px solid var(--line); }
     .dialog-body { padding: 24px; }
     textarea { width:100%; min-height: 260px; background: var(--glass); border:1px solid var(--line); color:var(--text); border-radius: 18px; padding: 14px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .command-dialog { max-width: 760px; padding:0; overflow:hidden; }
+    .command-shell { padding: 14px; }
+    .command-input-row { display:flex; gap:10px; align-items:center; padding-bottom:12px; border-bottom:1px solid var(--line); }
+    .command-input-row input {
+      flex:1; min-width:0; border:0; border-radius: 16px; background:rgba(255,255,255,.06);
+      color:var(--text); padding:16px 16px; font:750 18px/1 var(--font); outline:none;
+    }
+    .command-input-row input::placeholder { color: var(--subtle); }
+    .command-results { display:grid; gap:6px; max-height:min(62vh, 520px); overflow:auto; padding-top:12px; }
+    .command-item {
+      display:grid; grid-template-columns: 96px minmax(0,1fr); gap:14px; align-items:center;
+      padding:12px; border-radius:8px; border:1px solid transparent; color:var(--muted);
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .command-item:hover, .command-item.active { background:rgba(255,255,255,.075); border-color:var(--line); transform:translateY(-1px); }
+    .command-type { color:var(--subtle); font-size:11px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; }
+    .command-main { min-width:0; }
+    .command-main b { display:block; color:var(--text); font-size:15px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .command-main span { display:block; margin-top:4px; color:var(--muted); font-size:12px; line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .command-empty { padding:26px 12px; color:var(--muted); text-align:center; }
+
+    body.compact .week { grid-template-columns: 86px minmax(0,1fr); gap: 22px; padding: 22px 0; }
+    body.compact .week-num { top: 120px; }
+    body.compact .week-num strong { font-size: 34px; }
+    body.compact .week h3 { font-size: clamp(23px, 2.3vw, 34px); }
+    body.compact .week p, body.compact .week-meta, body.compact .week-project { display:none; }
+    body.compact .done-control { margin-top: 12px; }
+    body.compact .timeline { border-top-color: var(--line-strong); }
 
     .reveal {
       opacity: 0;
@@ -533,6 +604,9 @@
 
     @media (max-width: 900px) {
       .navlinks { display:none; }
+      .nav-tray { display:none; }
+      .nav-actions { gap:2px; }
+      .nav-next, #densityBtn { display:none; }
       .mobile-jump { display:block; }
       .hero-grid, .section-head, .week-meta, .spec-grid, .gates, .artifact-grid { grid-template-columns: 1fr; }
       .hero { padding-top: 124px; min-height: auto; }
@@ -549,6 +623,7 @@
       .controls { border-radius: 28px; top:74px; }
       .resource-listing { grid-template-columns: 1fr; }
       .resource-group { padding-bottom:0!important; border-bottom:0!important; }
+      body.compact .week { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 620px) {
@@ -561,6 +636,11 @@
       .map-stats div { padding: 13px 8px; font-size: 11px; }
       .hero-actions { gap:10px; }
       .btn { padding: 12px 14px; }
+      .command-item { grid-template-columns: 1fr; gap:6px; }
+      .command-input-row { align-items:stretch; }
+      .command-input-row input { font-size:16px; }
+      .quick-filters { border-radius:22px; }
+      .nav-kbd { display:none; }
     }
 
     @media (max-width: 900px) {
@@ -742,7 +822,7 @@
     }
 
     @media print {
-      .nav, .controls, .hero-actions, .toast, .mobile-jump, .section-nav { display:none!important; }
+      .nav, .nav-tray, .controls, .hero-actions, .toast, .mobile-jump, .section-nav, .command-dialog { display:none!important; }
       body { background:#fff!important; color:#111!important; }
       section { break-inside:auto; padding: 36px 0; }
       .week { break-inside: avoid; grid-template-columns: 80px 1fr; }
@@ -768,20 +848,24 @@
   <div class="grain" aria-hidden="true"></div>
   <div class="progress-top" id="scrollProgress"></div>
   <nav class="nav" aria-label="Primary navigation">
-    <a href="#top" class="brand"><span class="mark" aria-hidden="true"></span><span>Data/AI Career Quest</span></a>
+    <a href="#top" class="brand"><span class="mark" aria-hidden="true"></span><span>DataQuest</span></a>
     <div class="navlinks">
-      <a href="#path">Path</a>
-      <a href="#weeks">Weeks</a>
-      <a href="#projects">Projects</a>
-      <a href="#resources">Resources</a>
-      <a href="#specialize">Specialize</a>
-      <a href="#career">Career</a>
+      <a href="#path" data-nav-menu="path" data-nav-target="path">Path</a>
+      <a href="#weeks" data-nav-menu="weeks" data-nav-target="weeks">Weeks</a>
+      <a href="#projects" data-nav-menu="projects" data-nav-target="projects">Projects</a>
+      <a href="#resources" data-nav-menu="resources" data-nav-target="resources">Resources</a>
+      <a href="#specialize" data-nav-menu="specialize" data-nav-target="specialize">Specialize</a>
+      <a href="#career" data-nav-menu="career" data-nav-target="career">Career</a>
     </div>
-    <div>
+    <div class="nav-actions">
+      <button id="navNextBtn" class="nav-next" title="Jump to next incomplete week">Next · Week 1</button>
+      <button id="commandBtn" title="Search and jump"><span>Search</span> <span class="nav-kbd">⌘K</span></button>
+      <button id="densityBtn" title="Toggle roadmap density">Compact</button>
       <button id="printBtn" title="Print or save as PDF">Print</button>
       <button id="themeBtn" class="mode-toggle" title="Toggle light/dark">Theme</button>
     </div>
   </nav>
+  <div class="nav-tray" id="navTray" aria-hidden="true"><div class="nav-tray-inner" id="navTrayInner"></div></div>
   <div class="mobile-jump"><select id="mobileNav" aria-label="Jump to section"><option value="#top">Top</option><option value="#weeks">Weeks</option><option value="#projects">Projects</option><option value="#resources">Resources</option><option value="#specialize">Specialization</option><option value="#career">Career</option></select></div>
   <main id="top">
     <section class="hero wrap">
@@ -899,6 +983,7 @@
           <div><div class="eyebrow">Learn by building</div><h2>Projects that become evidence.</h2></div>
           <p>Every major project appears inside the weekly path at the point it naturally belongs. This index gives you a clean reference for the direct roadmap.sh project link, objectives, deliverables, rubrics, and portfolio value.</p>
         </div>
+        <div class="quick-filters" id="projectFilters" aria-label="Filter projects"></div>
         <div id="projectIndex" class="timeline"></div>
       </div>
     </section>
@@ -909,6 +994,7 @@
           <div><div class="eyebrow">Linked source library</div><h2>All resources in one place.</h2></div>
           <p>These are the roadmap and documentation links used throughout the plan. The app runs offline after download, while the resource links open externally when you are online.</p>
         </div>
+        <div class="quick-filters" id="resourceFilters" aria-label="Filter resources"></div>
         <div class="resource-listing" id="resourceListing"></div>
       </div>
     </section>
@@ -967,6 +1053,15 @@
     <div class="dialog-head"><strong>Exported progress JSON</strong><button class="btn ghost" onclick="document.getElementById('exportDialog').close()">Close</button></div>
     <div class="dialog-body"><p class="wide-p" style="font-size:15px;margin-bottom:16px">Copy this if you want a backup of your local completion state.</p><textarea id="exportText"></textarea></div>
   </dialog>
+  <dialog id="commandDialog" class="command-dialog">
+    <div class="command-shell">
+      <div class="command-input-row">
+        <input id="commandInput" type="search" autocomplete="off" placeholder="Search weeks, projects, resources, lanes..." aria-label="Search roadmap" />
+        <button class="btn ghost" id="commandCloseBtn">Close</button>
+      </div>
+      <div class="command-results" id="commandResults"></div>
+    </div>
+  </dialog>
   <div class="toast" id="toast">Saved</div>
 
   <div class="section-nav" id="sectionNav" aria-label="Section navigation">
@@ -992,6 +1087,7 @@
     const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
     const STORE = 'dataAiCareerQuestProgress.v1';
     const THEME = 'dataAiCareerQuestTheme.v1';
+    const DENSITY = 'dataAiCareerQuestDensity.v1';
     const progress = JSON.parse(localStorage.getItem(STORE) || '{"weeks":{}}');
 
     function save() { localStorage.setItem(STORE, JSON.stringify(progress)); updateCompletion(); }
@@ -1192,6 +1288,228 @@
       return `<div class="artifact-title">${label}: ${escapeHTML(output)}</div><div class="artifact-grid"><div class="artifact-block"><b>What is being requested</b><p>Create a concrete, reviewable artifact for <strong>${escapeHTML(ctx.focus || ctx.objective || ctx.objectives || output)}</strong>. This is not a vague study note. It must be something that can be opened, reviewed, and linked later.</p></div><div class="artifact-block"><b>Where to put it in GitHub</b><p>Repository: <code>${escapeHTML(loc.repo)}</code><br>Path: <code>${escapeHTML(loc.path)}</code><br>${escapeHTML(loc.note)}</p></div><div class="artifact-block wide"><b>Required files / folders</b><ul>${files.map(x=>`<li><code>${escapeHTML(x)}</code></li>`).join('')}</ul></div><div class="artifact-block"><b>Required contents</b><ul>${contents.map(x=>`<li>${x}</li>`).join('')}</ul></div><div class="artifact-block"><b>Acceptance criteria</b><ul>${acceptance.map(x=>`<li>${x}</li>`).join('')}</ul></div></div><div class="artifact-submit"><b>Submission to yourself:</b> commit the files, push to GitHub, then paste the commit or PR link into <code>${escapeHTML(loc.path)}reflection.md</code> or your portfolio index. Suggested commit message: <code>${escapeHTML(commitMsg)}</code>.</div>`;
     }
 
+    let activeProjectFilter = 'all';
+    let activeResourceFilter = 'all';
+    let commandItems = [];
+    let commandActive = 0;
+    let navTrayTimer = null;
+    let activeNavMenu = null;
+
+    function getNextIncompleteWeek() {
+      return DATA.weeks.find(w => !progress.weeks[w.week]) || DATA.weeks[DATA.weeks.length - 1];
+    }
+    function updateNextAffordance() {
+      const next = getNextIncompleteWeek();
+      const complete = Object.keys(progress.weeks).length >= DATA.weeks.length;
+      const nav = $('#navNextBtn');
+      const inline = $('#currentWeekBtn');
+      if (nav) nav.textContent = complete ? `Review · Week ${next.week}` : `Next · Week ${next.week}`;
+      if (inline) inline.textContent = complete ? 'Review final week' : `Jump to Week ${next.week}`;
+    }
+    function applyDensity() {
+      const compact = localStorage.getItem(DENSITY) === 'compact';
+      document.body.classList.toggle('compact', compact);
+      const btn = $('#densityBtn');
+      if (btn) btn.textContent = compact ? 'Expanded' : 'Compact';
+    }
+    function toggleDensity() {
+      const compact = !document.body.classList.contains('compact');
+      localStorage.setItem(DENSITY, compact ? 'compact' : 'expanded');
+      applyDensity();
+      toast(compact ? 'Compact roadmap' : 'Expanded roadmap');
+    }
+
+    const PROJECT_FILTERS = [
+      ['all', 'All'], ['python', 'Python'], ['sql', 'SQL'], ['analysis', 'Analysis'],
+      ['engineering', 'Engineering'], ['ml', 'ML'], ['ai', 'AI'], ['career', 'Career']
+    ];
+    function projectTags(name, spec) {
+      const text = lowerText(`${name} ${spec.objectives || ''} ${spec.deliverables?.join(' ') || ''} ${spec.portfolio || ''}`);
+      const tags = [];
+      if (text.match(/python|pandas|csv|notebook|jupyter|cli|script|numpy/)) tags.push('python');
+      if (text.match(/sql|postgres|relational|query|schema|mart|join/)) tags.push('sql');
+      if (text.match(/analysis|eda|dashboard|visual|chart|excel|tableau|power bi|stakeholder|kpi/)) tags.push('analysis');
+      if (text.match(/pipeline|engineering|dbt|airflow|docker|api|ci|warehouse|orchestration|elt|mlops/)) tags.push('engineering');
+      if (text.match(/machine learning|model|classification|regression|iris|ml\b|pytorch|baseline/)) tags.push('ml');
+      if (text.match(/ai|rag|openai|llm|embedding|vector|qdrant|assistant|prompt|eval/)) tags.push('ai');
+      if (text.match(/career|portfolio|resume|interview|job|application/)) tags.push('career');
+      return tags.length ? Array.from(new Set(tags)) : ['analysis'];
+    }
+    function renderFilterChips(container, items, active) {
+      const el = $(container);
+      if (!el) return;
+      el.innerHTML = items.map(([key, label]) => `<button class="filter-chip ${key === active ? 'active' : ''}" data-filter="${escapeHTML(key)}">${escapeHTML(label)}</button>`).join('');
+    }
+    function renderProjectFilters() { renderFilterChips('#projectFilters', PROJECT_FILTERS, activeProjectFilter); }
+    function applyProjectFilter() {
+      $$('#projectIndex .week').forEach(item => {
+        const tags = (item.dataset.projectTags || '').split(' ');
+        item.classList.toggle('project-hidden', activeProjectFilter !== 'all' && !tags.includes(activeProjectFilter));
+      });
+      updateSectionNav();
+    }
+    function renderResourceFilters() {
+      const groups = Array.from(new Set(DATA.resources.map(r => r.group)));
+      renderFilterChips('#resourceFilters', [['all', 'All'], ...groups.map(g => [g, g])], activeResourceFilter);
+    }
+    function applyResourceFilter() {
+      $$('#resourceListing .resource-row').forEach(row => {
+        row.classList.toggle('hidden', activeResourceFilter !== 'all' && row.dataset.resourceGroup !== activeResourceFilter);
+      });
+      updateSectionNav();
+    }
+
+    function projectEntries() {
+      return Object.entries(DATA.projectSpecs).map(([name, spec], i) => ({ name, spec, index: i + 1, tags: projectTags(name, spec) }));
+    }
+    function commandLabel(text, max=92) {
+      const value = String(text || '');
+      return value.length > max ? `${value.slice(0, max - 1)}...` : value;
+    }
+    function buildCommandItems() {
+      const items = [
+        { type: 'Action', label: `Next incomplete week`, meta: `Week ${getNextIncompleteWeek().week}`, href: `#week-${getNextIncompleteWeek().week}` },
+        { type: 'Section', label: 'Overview', meta: 'Hero and summary', href: '#top' },
+        { type: 'Section', label: 'Roadmap sequence', meta: 'Phase overview', href: '#path' },
+        { type: 'Section', label: 'Projects', meta: 'Portfolio project index', href: '#projects' },
+        { type: 'Section', label: 'Resources', meta: 'Linked source library', href: '#resources' },
+        { type: 'Section', label: 'Career readiness', meta: 'Gates and role map', href: '#career' }
+      ];
+      DATA.phases.forEach(p => items.push({ type: 'Phase', label: p.title, meta: `Weeks ${p.range}`, href: `#week-${p.range.split('-')[0]}` }));
+      DATA.weeks.forEach(w => items.push({ type: 'Week', label: `Week ${w.week}: ${w.focus}`, meta: `${w.phase} · ${w.hours} hrs`, href: `#week-${w.week}` }));
+      projectEntries().forEach(p => items.push({ type: 'Project', label: p.name, meta: p.spec.hours, href: `#project-${p.index}` }));
+      DATA.resources.forEach(r => items.push({ type: 'Resource', label: r.title, meta: r.group, href: r.url, external: true }));
+      Object.values(DATA.specializationTracks).forEach(t => items.push({ type: 'Lane', label: t.title, meta: t.duration, href: '#specialize' }));
+      Object.values(DATA.acceleratedTracks).forEach(t => items.push({ type: 'Lane', label: t.title, meta: t.duration, href: '#accelerated' }));
+      commandItems = items;
+    }
+    function commandMatches(item, q) {
+      const haystack = lowerText(`${item.type} ${item.label} ${item.meta}`);
+      return q.split(/\s+/).filter(Boolean).every(part => haystack.includes(part));
+    }
+    function commandScore(item, q) {
+      const label = lowerText(item.label);
+      const meta = lowerText(item.meta);
+      let score = 0;
+      if (!q) return score;
+      if (label === q) score += 120;
+      if (label.startsWith(q)) score += 90;
+      if (label.includes(q)) score += 60;
+      if (meta.includes(q)) score += 15;
+      const week = q.match(/week\s*(\d+)/);
+      if (week && item.type === 'Week' && label.startsWith(`week ${week[1]}:`)) score += 140;
+      if (item.type === 'Action') score += 10;
+      return score;
+    }
+    function renderCommandResults() {
+      const q = lowerText($('#commandInput')?.value || '');
+      const results = (q ? commandItems.filter(item => commandMatches(item, q)).sort((a,b) => commandScore(b, q) - commandScore(a, q)) : commandItems).slice(0, 18);
+      commandActive = Math.min(commandActive, Math.max(results.length - 1, 0));
+      $('#commandResults').innerHTML = results.length ? results.map((item, i) => `
+        <a class="command-item ${i === commandActive ? 'active' : ''}" href="${escapeHTML(item.href)}" ${item.external ? 'target="_blank" rel="noreferrer"' : ''} data-command-result="${i}">
+          <span class="command-type">${escapeHTML(item.type)}</span>
+          <span class="command-main"><b>${escapeHTML(commandLabel(item.label))}</b><span>${escapeHTML(commandLabel(item.meta || ''))}</span></span>
+        </a>`).join('') : `<div class="command-empty">No matches</div>`;
+    }
+    function openCommandPalette() {
+      closeNavTray();
+      buildCommandItems();
+      const dialog = $('#commandDialog');
+      if (!dialog.open) dialog.showModal();
+      $('#commandInput').value = '';
+      commandActive = 0;
+      renderCommandResults();
+      requestAnimationFrame(() => $('#commandInput').focus());
+    }
+    function closeCommandPalette() {
+      const dialog = $('#commandDialog');
+      if (dialog?.open) dialog.close();
+    }
+
+    function navTrayData(menu) {
+      if (menu === 'path') return {
+        title: 'Roadmap sequence',
+        copy: 'Move through the major learning phases.',
+        links: DATA.phases.map((p, i) => ({ label: `${String(i + 1).padStart(2, '0')} · ${p.title}`, meta: `Weeks ${p.range}`, href: `#week-${p.range.split('-')[0]}` }))
+      };
+      if (menu === 'weeks') return {
+        title: 'Weekly roadmap',
+        copy: 'Jump directly to a week or continue where progress left off.',
+        links: [{ label: 'Next incomplete week', meta: `Week ${getNextIncompleteWeek().week}`, href: `#week-${getNextIncompleteWeek().week}` }, ...DATA.weeks.map(w => ({ label: `Week ${w.week}`, meta: w.focus, href: `#week-${w.week}` }))]
+      };
+      if (menu === 'projects') return {
+        title: 'Project index',
+        copy: 'Open a specific project spec.',
+        links: projectEntries().map(p => ({ label: p.name, meta: p.spec.hours, href: `#project-${p.index}` }))
+      };
+      if (menu === 'resources') return {
+        title: 'Source library',
+        copy: 'Open a resource directly.',
+        links: DATA.resources.map(r => ({ label: r.title, meta: r.group, href: r.url, external: true }))
+      };
+      if (menu === 'specialize') return {
+        title: 'Specialization lanes',
+        copy: 'Choose advanced or accelerated paths.',
+        links: [
+          ...Object.values(DATA.specializationTracks).map(t => ({ label: t.title, meta: `${t.duration} · specialization`, href: '#specialize' })),
+          ...Object.values(DATA.acceleratedTracks).map(t => ({ label: t.title, meta: `${t.duration} · accelerated`, href: '#accelerated' }))
+        ]
+      };
+      return {
+        title: 'Career readiness',
+        copy: 'Review gates, evidence, and role alignment.',
+        links: [
+          ...DATA.gates.map(([name, items]) => ({ label: name, meta: `${items.length} checks`, href: '#career' })),
+          { label: 'Role-readiness map', meta: 'Evidence by target role', href: '#career' }
+        ]
+      };
+    }
+    function renderNavTray(menu) {
+      const data = navTrayData(menu);
+      $('#navTrayInner').innerHTML = `
+        <div>
+          <div class="nav-tray-kicker">Jump menu</div>
+          <h3 class="nav-tray-title">${escapeHTML(data.title)}</h3>
+          <p class="nav-tray-copy">${escapeHTML(data.copy)}</p>
+        </div>
+        <div class="nav-tray-list">
+          ${data.links.map(link => `<a class="nav-tray-card" href="${escapeHTML(link.href)}" ${link.external ? 'target="_blank" rel="noreferrer"' : ''}><b>${escapeHTML(commandLabel(link.label, 48))}</b><span>${escapeHTML(commandLabel(link.meta || '', 76))}</span></a>`).join('')}
+        </div>`;
+    }
+    function openNavTray(menu) {
+      if (window.innerWidth <= 900) return;
+      clearTimeout(navTrayTimer);
+      activeNavMenu = menu;
+      renderNavTray(menu);
+      $('#navTray').classList.add('open');
+      $('#navTray').setAttribute('aria-hidden', 'false');
+      $$('[data-nav-menu]').forEach(a => a.classList.toggle('tray-active', a.dataset.navMenu === menu));
+    }
+    function closeNavTray() {
+      $('#navTray')?.classList.remove('open');
+      $('#navTray')?.setAttribute('aria-hidden', 'true');
+      $$('[data-nav-menu]').forEach(a => a.classList.remove('tray-active'));
+      activeNavMenu = null;
+    }
+    function scheduleNavTrayClose() {
+      clearTimeout(navTrayTimer);
+      navTrayTimer = setTimeout(closeNavTray, 140);
+    }
+    function navGroupForSection(id) {
+      if (!id || id === 'top') return '';
+      if (id === 'path') return 'path';
+      if (id === 'weeks' || id.startsWith('week-')) return 'weeks';
+      if (id === 'projects' || id.startsWith('project-')) return 'projects';
+      if (id === 'resources') return 'resources';
+      if (id === 'specialize' || id === 'accelerated' || id.startsWith('specialization-') || id.startsWith('accelerated-')) return 'specialize';
+      if (id === 'career') return 'career';
+      return '';
+    }
+    function updateTopNavActive(sectionId) {
+      const group = navGroupForSection(sectionId);
+      $$('[data-nav-target]').forEach(a => a.classList.toggle('active', !!group && a.dataset.navTarget === group));
+    }
+
     function renderProjectSpec(name) {
       if(!name || !DATA.projectSpecs[name]) return '';
       const s = DATA.projectSpecs[name];
@@ -1242,9 +1560,9 @@
     }
 
     function renderProjectIndex() {
-      $('#projectIndex').innerHTML = Object.entries(DATA.projectSpecs).map(([name,s],i) => `
-        <article class="week" id="project-${i+1}">
-          <div class="week-num"><span>Spec</span><strong>${String(i+1).padStart(2,'0')}</strong></div>
+      $('#projectIndex').innerHTML = projectEntries().map(({name, spec:s, index:i, tags}) => `
+        <article class="week" id="project-${i}" data-project-tags="${escapeHTML(tags.join(' '))}">
+          <div class="week-num"><span>Spec</span><strong>${String(i).padStart(2,'0')}</strong></div>
           <div class="week-main">
             <div class="week-kicker"><span class="tag">Project</span><span class="hours">${s.hours} hrs</span></div>
             <h3>${name}</h3>
@@ -1261,10 +1579,14 @@
             </div>
           </div>
         </article>`).join('');
+      renderProjectFilters();
+      applyProjectFilter();
     }
 
     function renderResources() {
-      $('#resourceListing').innerHTML = DATA.resources.map(x => `<div class="resource-row"><div class="resource-group">${x.group}</div><div class="resource-link"><a target="_blank" rel="noreferrer" href="${x.url}">${x.title} ↗</a></div></div>`).join('');
+      $('#resourceListing').innerHTML = DATA.resources.map(x => `<div class="resource-row" data-resource-group="${escapeHTML(x.group)}"><div class="resource-group">${x.group}</div><div class="resource-link"><a target="_blank" rel="noreferrer" href="${x.url}">${x.title} ↗</a></div></div>`).join('');
+      renderResourceFilters();
+      applyResourceFilter();
     }
     let activeSpecialization = 'analytics';
     let activeAccelerated = 'dataAnalyst';
@@ -1361,6 +1683,7 @@
     function updateCompletion() {
       const n = Object.keys(progress.weeks).length;
       $('#completionPill').textContent = `${n} / ${DATA.weeks.length} complete`;
+      updateNextAffordance();
     }
     function filterWeeks() {
       const q = $('#search').value.trim().toLowerCase();
@@ -1373,8 +1696,23 @@
       updateSectionNav();
     }
     function nextWeek() {
-      const first = DATA.weeks.find(w => !progress.weeks[w.week]) || DATA.weeks[DATA.weeks.length-1];
+      const first = getNextIncompleteWeek();
       smoothScrollToY(document.getElementById(`week-${first.week}`).getBoundingClientRect().top + window.scrollY - 92);
+    }
+    function scrollToHashTarget(hash=location.hash, instant=false) {
+      if (!hash || hash === '#') return false;
+      const target = hash === '#top' ? document.body : document.querySelector(hash);
+      if (!target) return false;
+      const y = target === document.body ? 0 : target.getBoundingClientRect().top + window.scrollY - 82;
+      if (instant) jumpScrollToY(y);
+      else smoothScrollToY(y);
+      return true;
+    }
+    function syncInitialHash() {
+      if (!location.hash) return;
+      requestAnimationFrame(() => {
+        if (scrollToHashTarget(location.hash, true)) setTimeout(updateSectionNav, 80);
+      });
     }
     function exportProgress() {
       $('#exportText').value = JSON.stringify({ exportedAt: new Date().toISOString(), progress }, null, 2);
@@ -1483,6 +1821,7 @@
       if (!sections.length) return;
       currentSectionIndex = findCurrentSectionIndex();
       const current = sections[currentSectionIndex];
+      updateTopNavActive(current.id);
       const atTop = window.scrollY < 160;
       const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 12;
       sectionNav.classList.add('ready');
@@ -1563,7 +1902,15 @@
         requestAnimationFrame(smoothStep);
       }
     }
+    function jumpScrollToY(y) {
+      smoothTargetY = clampScroll(y);
+      smoothCurrentY = smoothTargetY;
+      smoothActive = false;
+      window.scrollTo(0, smoothTargetY);
+      requestScrollFrame();
+    }
     function smoothStep() {
+      if (!smoothActive) return;
       const diff = smoothTargetY - smoothCurrentY;
       smoothCurrentY += diff * 0.105;
       if (Math.abs(diff) < 0.6) {
@@ -1606,15 +1953,16 @@
       if (!a) return;
       const hash = a.getAttribute('href');
       if (!hash || hash === '#') return;
-      const target = hash === '#top' ? document.body : document.querySelector(hash);
-      if (!target) return;
+      if (!document.querySelector(hash === '#top' ? 'body' : hash)) return;
       e.preventDefault();
-      const y = target === document.body ? 0 : target.getBoundingClientRect().top + window.scrollY - 82;
-      smoothScrollToY(y);
+      scrollToHashTarget(hash);
       history.pushState(null, '', hash);
     });
 
     window.addEventListener('scroll', requestScrollFrame, {passive:true});
+    window.addEventListener('hashchange', () => {
+      if (scrollToHashTarget(location.hash, true)) setTimeout(updateSectionNav, 80);
+    });
 
     /* legacy scroll handler intentionally removed in favor of requestAnimationFrame */
     /* window.addEventListener('scroll', () => {
@@ -1626,11 +1974,78 @@
     $('#search').addEventListener('input', filterWeeks);
     $('#phaseFilter').addEventListener('change', filterWeeks);
     $('#currentWeekBtn').addEventListener('click', nextWeek);
+    $('#navNextBtn')?.addEventListener('click', nextWeek);
+    $('#densityBtn')?.addEventListener('click', toggleDensity);
+    $('#commandBtn')?.addEventListener('click', openCommandPalette);
+    $('#commandCloseBtn')?.addEventListener('click', closeCommandPalette);
+    $('#commandInput')?.addEventListener('input', () => { commandActive = 0; renderCommandResults(); });
+    $('#commandInput')?.addEventListener('keydown', e => {
+      const items = $$('.command-item', $('#commandResults'));
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!items.length) return;
+        commandActive = (commandActive + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        renderCommandResults();
+        $('.command-item.active', $('#commandResults'))?.scrollIntoView({ block: 'nearest' });
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        $('.command-item.active', $('#commandResults'))?.click();
+      }
+      if (e.key === 'Escape') closeCommandPalette();
+    });
+    $('#commandResults')?.addEventListener('click', e => {
+      if (e.target.closest('.command-item')) closeCommandPalette();
+    });
+    $('#projectFilters')?.addEventListener('click', e => {
+      const chip = e.target.closest('[data-filter]');
+      if (!chip) return;
+      activeProjectFilter = chip.dataset.filter;
+      renderProjectFilters();
+      applyProjectFilter();
+    });
+    $('#resourceFilters')?.addEventListener('click', e => {
+      const chip = e.target.closest('[data-filter]');
+      if (!chip) return;
+      activeResourceFilter = chip.dataset.filter;
+      renderResourceFilters();
+      applyResourceFilter();
+    });
     $('#exportBtn').addEventListener('click', exportProgress);
     $('#resetBtn').addEventListener('click', resetProgress);
     $('#printBtn').addEventListener('click', () => window.print());
     $('#themeBtn').addEventListener('click', () => { localStorage.setItem(THEME, document.body.classList.contains('light') ? 'dark' : 'light'); applyTheme(); });
     $('#mobileNav').addEventListener('change', e => location.hash = e.target.value);
+    $$('[data-nav-menu]').forEach(link => {
+      link.addEventListener('mouseenter', () => openNavTray(link.dataset.navMenu));
+      link.addEventListener('focus', () => openNavTray(link.dataset.navMenu));
+      link.addEventListener('mouseleave', scheduleNavTrayClose);
+      link.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          openNavTray(link.dataset.navMenu);
+          requestAnimationFrame(() => $('.nav-tray-card')?.focus());
+        }
+      });
+    });
+    $('#navTray')?.addEventListener('mouseenter', () => clearTimeout(navTrayTimer));
+    $('#navTray')?.addEventListener('mouseleave', scheduleNavTrayClose);
+    $('#navTray')?.addEventListener('click', e => {
+      if (e.target.closest('a')) closeNavTray();
+    });
+    document.addEventListener('pointerdown', e => {
+      if (!activeNavMenu) return;
+      if (e.target.closest('.nav') || e.target.closest('#navTray')) return;
+      closeNavTray();
+    });
+    document.addEventListener('keydown', e => {
+      const isCommand = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+      if (isCommand) {
+        e.preventDefault();
+        openCommandPalette();
+      }
+      if (e.key === 'Escape') closeNavTray();
+    });
     $('#specializationTabs')?.addEventListener('click', e => {
       const key = e.target.closest('[data-specialization-tab]')?.dataset.specializationTab;
       if(!key) return;
@@ -1657,7 +2072,8 @@
 
 
     applyTheme();
-    renderDots(); renderPhases(); renderWeeks(); renderProjectIndex(); renderResources(); renderTables(); updateCompletion(); initReveal(); updateSectionNav(); onScrollFrame();
+    applyDensity();
+    renderDots(); renderPhases(); renderWeeks(); renderProjectIndex(); renderResources(); renderTables(); updateCompletion(); initReveal(); updateSectionNav(); syncInitialHash(); onScrollFrame();
   </script>
 </body>
 </html>
